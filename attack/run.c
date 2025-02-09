@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "aes.h"
+#include "attack.h"
 #include "haraka.h"
 
 /*
@@ -22,7 +23,7 @@ unsigned char in[16] = {
 
 int main()
 {
-    unsigned char s[64];
+    /* unsigned char s[64];
 
     for (int i = 0; i < 64; i++)
         s[i] = i;
@@ -39,5 +40,10 @@ int main()
 
     for (int i = 0; i < 64; i++) {
         printf("%.2hhx ", s[i]);
-    }
+    } */
+
+    /* unsigned char a[2] = {0, 0};
+    do {
+        printf("%.2hhx %.2hhx\n", a[0], a[1]);
+    } while (inc_array(a, 2)); */
 }

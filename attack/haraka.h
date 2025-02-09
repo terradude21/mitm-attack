@@ -2,6 +2,8 @@
 #define HARAKA_H
 
 extern const uint64_t haraka_rc[64];
+extern const int p_mix[16];
+extern const int p_mix_inv[16];
 
 void mix(unsigned char *s, const int *p);
 void haraka512_p(unsigned char *out, const unsigned char *in);

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <string.h>
 
 #include "aes.h"
@@ -22,8 +23,8 @@ const uint64_t haraka_rc[64] = {
     0xe4ed0353600ed0d9, 0x2cee0c7500da619c, 0x80bbbabc63a4a350, 0xf0b1a5a196e90cab
 };
 
-static const int p_mix[16] = {3, 11, 7, 15, 8, 0, 12, 4, 9, 1, 13, 5, 2, 10, 6, 14};
-static const int p_mix_inv[16] = {5, 9, 12, 0, 7, 11, 14, 2, 4, 8, 13, 1, 6, 10, 15, 3};
+const int p_mix[16] = {3, 11, 7, 15, 8, 0, 12, 4, 9, 1, 13, 5, 2, 10, 6, 14};
+const int p_mix_inv[16] = {5, 9, 12, 0, 7, 11, 14, 2, 4, 8, 13, 1, 6, 10, 15, 3};
 
 void mix(unsigned char *s, const int *p)
 {
