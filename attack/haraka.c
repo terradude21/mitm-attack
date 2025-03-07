@@ -26,6 +26,10 @@ const uint64_t haraka_rc[64] = {
 const int p_mix[16] = {3, 11, 7, 15, 8, 0, 12, 4, 9, 1, 13, 5, 2, 10, 6, 14};
 const int p_mix_inv[16] = {5, 9, 12, 0, 7, 11, 14, 2, 4, 8, 13, 1, 6, 10, 15, 3};
 
+/*
+ * Haraka mixing operation.
+ * Applies permutation p to the columns of the Haraka state s.
+ */
 void mix(unsigned char *s, const int *p)
 {
     unsigned char t[64];
@@ -37,6 +41,11 @@ void mix(unsigned char *s, const int *p)
     memcpy(s, t, 64);
 }
 
+/* 
+ * Haraka permutation: 512 bits -> 512 bits
+ * The permutation is simplified for the attack:
+ * 4 rounds instead of 5, the last mixing operation is omitted.
+ */
 void haraka512_p(unsigned char *out, const unsigned char *in)
 {
     unsigned char s[64];
@@ -58,6 +67,11 @@ void haraka512_p(unsigned char *out, const unsigned char *in)
     memcpy(out, s, 64);
 }
 
+/* 
+ * Haraka inverse permutation: 512 bits -> 512 bits
+ * The permutation is simplified for the attack:
+ * 4 rounds instead of 5, the last mixing operation is omitted.
+ */
 void haraka512_p_inv(unsigned char *out, const unsigned char *in)
 {
     unsigned char s[64];
@@ -80,6 +94,19 @@ void haraka512_p_inv(unsigned char *out, const unsigned char *in)
     memcpy(out, s, 64);
 }
 
+/*
+ * XORs the message block m into the outer part of the state s.
+ */
+void absorb(unsigned char *s, const unsigned char *m)
+{
+    for (int i = 0; i < 32; i++)
+        s[i] ^= m[i];
+}
+
+/*
+ * Haraka sponge construction.
+ * Hashes an arbitrary length input to an arbitrary length output.
+ */
 void haraka_s(unsigned char *out, size_t outlen, const unsigned char *in, size_t inlen)
 {
     unsigned char s[64];
@@ -94,9 +121,7 @@ void haraka_s(unsigned char *out, size_t outlen, const unsigned char *in, size_t
 
     /* Absorb */
     for (size_t r = 0; r < n; r++) {
-        for (int i = 0; i < 32; i++) {
-            s[i] ^= in[32*r + i];
-        }
+        absorb(s, in + 32*r);
         haraka512_p(s, s);
     }
 
@@ -105,9 +130,7 @@ void haraka_s(unsigned char *out, size_t outlen, const unsigned char *in, size_t
     memset(f + (d + 1), 0, 31 - d);
     f[31] |= 0x80;
 
-    for (int i = 0; i < 32; i++)
-        s[i] ^= f[i];
-
+    absorb(s, f);
     haraka512_p(s, s);
 
     /* Squeeze */

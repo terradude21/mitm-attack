@@ -40,11 +40,18 @@ const unsigned char aes_sbox_inv[256] = {
     0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 };
 
+/*
+ * Multiply by 2 in the AES Galois field.
+ * (GF(2^8) mod x^8 + x^4 + x^3 + x + 1)  
+ */
 unsigned char gdouble(const unsigned char x)
 {
     return (x << 1) ^ (x & 0x80 ? 0x1b : 0);
 }
 
+/*
+ * Add the round key (k0, k1) to the AES state a. 
+ */
 void aes_addkey(unsigned char *a, const uint64_t k0, const uint64_t k1)
 {
     for (int k = 0; k < 16; k++) {
@@ -52,6 +59,9 @@ void aes_addkey(unsigned char *a, const uint64_t k0, const uint64_t k1)
     }
 }
 
+/*
+ * Substitute bytes in the AES state a, according to the given sbox.
+ */
 void aes_subbyte(unsigned char *a, const unsigned char *sbox)
 {
     for (int i = 0; i < 16; i++) {
@@ -59,6 +69,10 @@ void aes_subbyte(unsigned char *a, const unsigned char *sbox)
     }
 }
 
+/*
+ * Shift rows in the AES state a.
+ * Use (inv != 0) to do the shift in reverse.
+ */
 void aes_shiftrow(unsigned char *a, const int inv)
 {
     unsigned char t;
@@ -74,6 +88,9 @@ void aes_shiftrow(unsigned char *a, const int inv)
     t = a[2]; a[2] = a[10]; a[10] = t; t = a[6]; a[6] = a[14]; a[14] = t;
 }
 
+/*
+ * Perform the MixColumns step on the AES state a. 
+ */
 void aes_mixcol(unsigned char *a)
 {
     unsigned char a_1[4], a_2[4], a_3[4];
@@ -91,6 +108,9 @@ void aes_mixcol(unsigned char *a)
     }
 }
 
+/*
+ * Perform the inverse MixColumns step on the AES state a. 
+ */
 void aes_mixcol_inv(unsigned char *a)
 {
     unsigned char a_1[4], a_2[4], a_4[4], a_8[4], a_9[4], a_b[4], a_d[4], a_e[4];
@@ -113,6 +133,9 @@ void aes_mixcol_inv(unsigned char *a)
     }
 }
 
+/*
+ * Perform one round of AES on the 128-bit state a, with round key (k0, k1).
+ */
 void aes(unsigned char *a, const uint64_t k0, const uint64_t k1)
 {
     aes_subbyte(a, aes_sbox);
@@ -121,6 +144,9 @@ void aes(unsigned char *a, const uint64_t k0, const uint64_t k1)
     aes_addkey(a, k0, k1);
 }
 
+/*
+ * Invert one round of AES on the 128-bit state a, with round key (k0, k1).
+ */
 void aes_inv(unsigned char *a, const uint64_t k0, const uint64_t k1)
 {
     aes_addkey(a, k0, k1);

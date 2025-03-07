@@ -51,6 +51,10 @@ static const int trunc[8] = {2, 3, 6, 7, 8, 9, 12, 13};
 
 static uint64_t haraka_rc[80];
 
+/* 
+ * Perform one AES round on the 128-bit state a.
+ * (k0, k1) is the round key.
+ */
 static void aes(unsigned char *a, const uint64_t k0, const uint64_t k1)
 {
     unsigned char t;
@@ -59,14 +63,17 @@ static void aes(unsigned char *a, const uint64_t k0, const uint64_t k1)
     unsigned char a03, a13, a23, a33;
     unsigned char b0, b1, b2, b3;
 
+    /* SubBytes */
     for (int i = 0; i < 16; i++) {
         a[i] = aes_sbox[a[i]];
     }
 
+    /* ShiftRows */
     t = a[1]; a[1] = a[5]; a[5] = a[9]; a[9] = a[13]; a[13] = t;
     t = a[2]; a[2] = a[10]; a[10] = t; t = a[6]; a[6] = a[14]; a[14] = t;
     t = a[3]; a[3] = a[15]; a[15] = a[11]; a[11] = a[7]; a[7] = t;
 
+    /* MixColumns */
     for (int j = 0; j < 16; j += 4) {
         a0 = a[j]; a1 = a[j+1]; a2 = a[j+2]; a3 = a[j+3];
         a02 = (a0 << 1) ^ (a0 & 0x80 ? 0x1b : 0);
@@ -84,11 +91,16 @@ static void aes(unsigned char *a, const uint64_t k0, const uint64_t k1)
         a[j] = b0; a[j+1] = b1; a[j+2] = b2; a[j+3] = b3;
     }
 
+    /* AddKey */
     for (int k = 0; k < 16; k++) {
         a[k] ^= (unsigned char)((k < 8 ? k0 : k1) >> ((k % 8) * 8));
     }
 }
 
+/*
+ * Haraka mixing operation.
+ * Permutes the columns of the Haraka state s.
+ */
 static void mix(unsigned char *s)
 {
     unsigned char t[64];
@@ -100,11 +112,19 @@ static void mix(unsigned char *s)
     memcpy(s, t, 64);
 }
 
+/*
+ * Initialize the Haraka round constants (used as AES keys) to the default values.
+ * This or seed_rc() must be called before using the Haraka functions.
+ */
 void init_rc()
 {
     memcpy(haraka_rc, haraka_rc_default, 640);
 }
 
+/*
+ * Initialize the Haraka round constants (used as AES keys) according to a seed of arbitrary length.
+ * This or init_rc() must be called before using the Haraka functions.
+ */
 void seed_rc(const unsigned char *seed, size_t seedlen)
 {
     unsigned char s[640];
@@ -116,6 +136,9 @@ void seed_rc(const unsigned char *seed, size_t seedlen)
     memcpy(haraka_rc, s, 640);
 }
 
+/* 
+ * Haraka permutation: 512 bits -> 512 bits
+ */
 void haraka512_p(unsigned char *out, const unsigned char *in)
 {
     unsigned char s[64];
@@ -135,6 +158,10 @@ void haraka512_p(unsigned char *out, const unsigned char *in)
     memcpy(out, s, 64);
 }
 
+/* 
+ * Simple Haraka hash function: 512 bits -> 256 bits
+ * One permutation, xor input and output, truncate to 256 bits.
+ */
 void haraka512(unsigned char *out, const unsigned char *in)
 {
     unsigned char pout[64];
@@ -148,6 +175,10 @@ void haraka512(unsigned char *out, const unsigned char *in)
     }
 }
 
+/*
+ * Haraka sponge construction.
+ * Hashes an arbitrary length input to an arbitrary length output.
+ */
 void haraka_s(unsigned char *out, size_t outlen, const unsigned char *in, size_t inlen)
 {
     unsigned char s[64];
