@@ -5,6 +5,13 @@ Jonah Heuer: Master's thesis - "Meet-in-the-Middle Attacks on Sponge Functions"
 ## Goal
 Implement the MitM attack on the SPHINCS+-Haraka sponge construction. 
 
+## This repository
+`attack/`: Contains the code for the MitM attack on the 4-round Haraka sponge as
+described by Dong et al.
+
+`haraka/`: Simple and unsafe implementation of full 5-round Haraka and associated sponge,
+for demonstration and testing purposes.
+
 ## References
 
 - Dong et al. Generic MitM Attack Frameworks on Sponge Constructions.
